@@ -60,7 +60,7 @@ app.post('/chat', async (req, res) => {
         res.json({ botResponse });
 
     } catch (error) {
-        console.error('Error interaccting with OpenAI API:', error.message);
+        console.error('Error interacting with OpenAI API:', error.message);
         res.status(500).send('Internal Server Error');
     }
 
