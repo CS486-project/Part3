@@ -6,6 +6,11 @@ const fileInput = document.getElementById("file-input");
 
 const participantId = localStorage.getItem('participantId');
 
+if (!participantId) {
+    alert('No participant ID found. Please go back to the homepage and enter your ID.');
+    window.location.href = '/';
+}
+
 async function sendMessage(inputElement) {
     const trimmedInput = inputElement.value.trim();
     if (trimmedInput === "") {
@@ -14,17 +19,24 @@ async function sendMessage(inputElement) {
         messagesContainer.innerHTML += `<p>${trimmedInput}</p>`;
         inputElement.value = '';
 
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ participantId: participantId, message: trimmedInput, retrievalMethod: retrievalDropdown.value })
-        });
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ participantId: participantId, message: trimmedInput, retrievalMethod: retrievalDropdown.value })
+            });
 
-        const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        messagesContainer.innerHTML += `<p>Bot: ${data.botResponse}</p>`;
-        
-        console.log(data);
+            const data = await response.json();
+            messagesContainer.innerHTML += `<p>Bot: ${data.botResponse}</p>`;
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            messagesContainer.innerHTML += `<p>Error: Failed to get response from bot</p>`;
+        }
     }
 }
 
@@ -95,6 +107,8 @@ function logEvent(type, element) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participantId: participantId, eventType: type, elementName: element, timestamp: new Date() })
+    }).catch(error => {
+        console.error('Error logging event:', error);
     });
 }
 
